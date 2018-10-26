@@ -20,49 +20,80 @@
   ((maximizer weighted-squares) player board))
 
 (define (minimax player board depth eval-fn)
-  "Find the best move, for PLAYER, according to EVAL-FN,
-  searching DEPTH levels deep and backing up values."
-
-  ; get a list of all available moves
-  (define moves (legal-moves player board))
-
-  (cond
-  [(equal? 0 depth) (values (eval-fn board) board)]
-  ; if neither player can move, return final value for board (an integer)
-  [(and  (empty? moves) (empty? (legal-moves (opponent player) board))) (values (final-value player board) board) ]
-  ; if only opponent has moves, return #f and negative max score for opponent
-  [(and  (empty? moves) (not (empty? (legal-moves (opponent player) board))) (values (minimax (opponent player) board depth eval-fn) #f))]
-  ; both players have valid moves
-  [else
-    (define (while list depth maxval maxboard)
-
-      ; stores value of first board on list
-      (define current-board-val (- 0 (minimax (opponent player) (first list) (- depth 1) eval-fn)))
-
-      (cond
-        
-        ; returns max scoring board once all boards have been checked
-        [(empty? list) maxboard ]
-        ; check if value of first board on list is greater than maxval and replace if so, then do rest of list
-        [(> current-board-val maxval)
-         (set! maxval current-board-val)
-         (set! maxboard (first list))
-         (while (rest list) depth maxval maxboard)
-         ]
-        ; do rest of list
-        [else (while (rest list) depth maxval maxboard)]
-        
-           ) ; end of cond definition 
-      
-        ); end of while definition
-    
-      ] ; end of else block
-
-)
+  ; This function must output a board value and a move
+  ; Instantiate return values with default values
+  ; Note: standard expression #<void> used to do nothing
   
-  ; else continue with body of function
+  (define out-move #f)
+  (define out-val -10000)
 
-  ) ; end of cond
+  ; create list of possible moves for player and opponent
+  (define moves (legal-moves player board))
+  (define opponent-moves (legal-moves (opponent player) board))
+
+  ; define function for iterating through lists
+  (define (list-iter list)
+     (cond
+       [(empty? list) (void)]
+       [else
+          ; call minimax on first list element
+          (let-values ([(val move) (minimax (opponent player) (make-move (first list) player board) (- depth 1) eval-fn)])
+            ; update out-val and out-move if -val (since it's the opponent's best move) > out-val
+            (if (> (- 0 val) out-val)
+                (
+                 (set! out-val val)
+                 (set! out-move (first list))
+                 )
+                (void)
+            )
+            
+
+          ); end let
+
+          ; call list-iter on rest list
+          (list-iter (rest list))
+       ]
+     )
+  )
+  
+  ; deal with all cases by testing entry conditions in cond statement
+  (cond
+
+    ; Case 1: Depth is 0
+    ; set out-val to board value
+    [(equal? 0 depth) (set! out-val (eval-fn player board))]
+    
+    ; Case 2: Neither player can move
+    ; set out-val final board value
+    [(and (empty? moves) (empty? opponent-moves)) (set! out-val (final-value player board))]
+
+    ; Case 3: Opponent only can move
+    ; call minimax for opponent, throw away move, set out-val to - returned val
+    [(and (empty? moves) (not (empty? opponent-moves)))
+     (let-values ([(val move) (minimax (opponent player) board depth eval-fn)])
+          (set! out-val (- 0 val))  
+     )
+    ]
+    
+    ; Case 4: Current player can move
+    ; cycle through list of available moves
+    ; check if list is not empty
+    ; call minimax depth -1 on each
+    ; update move and val each time a new maximum move is achieved
+    [else
+         (cond
+           [(empty? moves)]
+         )
+    ]; end Case 4 else
+
+    
+  );end cond
+  
+  ; return out-move and out-val
+  (values out-val out-move)
+
+
+  
 
 ); end of function 
 

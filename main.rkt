@@ -11,7 +11,7 @@
 (define tock (make-parameter 0.5))
 
 ;; for playing a single game
-(define white-strategy-parameter (make-parameter "random-strategy"))
+(define white-strategy-parameter (make-parameter "minimax-searcher-1-weighted-squares"))
 (define black-strategy-parameter (make-parameter "random-strategy"))
 
 ;; for playing round robin
