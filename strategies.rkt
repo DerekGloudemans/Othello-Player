@@ -25,8 +25,7 @@
   ; Note: standard expression #<void> used to do nothing
   
   (define out-move #f)
-  (define out-val -10000)
-
+  (define out-val -9999)
   ; create list of possible moves for player and opponent
   (define moves (legal-moves player board))
   (define opponent-moves (legal-moves (opponent player) board))
@@ -39,24 +38,22 @@
           ; call minimax on first list element
           (let-values ([(val move) (minimax (opponent player) (make-move (first list) player board) (- depth 1) eval-fn)])
             ; update out-val and out-move if -val (since it's the opponent's best move) > out-val
-            (if (> (- 0 val) out-val)
-                (
-                 (set! out-val val)
-                 (set! out-move (first list))
-                 )
-                (void)
+            (set! val (- 0 val))
+            (cond
+              [(> val out-val)
+                (set! out-val val)
+                (set! out-move (first list))   
+              ]
             )
-            
-
           ); end let
 
           ; call list-iter on rest list
           (list-iter (rest list))
        ]
      )
-  )
+  ); end list-iter
   
-  ; deal with all cases by testing entry conditions in cond statement
+  ; deal with all cases, test entry conditions in cond statement
   (cond
 
     ; Case 1: Depth is 0
@@ -77,68 +74,28 @@
     
     ; Case 4: Current player can move
     ; cycle through list of available moves
-    ; check if list is not empty
-    ; call minimax depth -1 on each
-    ; update move and val each time a new maximum move is achieved
     [else
-         (cond
-           [(empty? moves)]
-         )
-    ]; end Case 4 else
-
-    
+         (list-iter moves)
+    ]
+  
   );end cond
   
   ; return out-move and out-val
+
   (values out-val out-move)
-
-
   
-
 ); end of function 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 (define (minimax-searcher depth eval-fn)
   "A strategy that searches DEPTH levels and then uses EVAL-FN."
   (let ([output (lambda (player board)
                   (let-values ([(value move) (minimax player board depth eval-fn)])
+                    ;(display player)
+                    ;(display value)
+                    ;(display "\n")
                     move))])
+
     (set! output (procedure-rename output
                                    (string->symbol
                                     (string-append
